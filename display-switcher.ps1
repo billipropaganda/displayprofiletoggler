@@ -1,6 +1,7 @@
 param([switch]$OpenGui)
 
-$ScriptDir = if($PSScriptRoot){$PSScriptRoot}else{Split-Path $PSCommandPath -Parent}
+# ponytail: GetCurrentProcess handles both .ps1 and PS2EXE-compiled .exe (PSScriptRoot points to temp dir in exe)
+$ScriptDir = Split-Path ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName) -Parent
 if(-not $ScriptDir){$ScriptDir=(Get-Location).Path}
 $ConfigFile = Join-Path $ScriptDir "display-config.json"
 
@@ -102,7 +103,7 @@ function Set-Display($dev, $w, $h, $fr){
     $m = New-Object N+DM; $m.sz = [Runtime.InteropServices.Marshal]::SizeOf($m)
     $m.fld = [N]::DM_W -bor [N]::DM_H -bor [N]::DM_F
     $m.w = $w; $m.h = $h; $m.fr = $fr
-    [N]::ChangeDisplaySettingsEx(
+    $null = [N]::ChangeDisplaySettingsEx(
         [Runtime.InteropServices.Marshal]::StringToHGlobalUni($dev),
         [ref]$m, [IntPtr]::Zero, [N]::CDS_UPDATEREGISTRY, [IntPtr]::Zero)
 }
